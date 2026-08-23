@@ -273,5 +273,5 @@ button[kind="header"],
 
 /* push the buddy iframe down away from Streamlit's own sidebar spinner */
 [data-testid="stSidebar"] iframe {
-    margin-top: 30px;
+    margin-top: 65px;
 }
