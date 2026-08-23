@@ -271,7 +271,16 @@ button[kind="header"],
     display: none !important;
 }
 
-/* push the buddy iframe down away from Streamlit's own sidebar spinner */
+/* make sidebar a flex column so we can pin the buddy to its bottom */
+[data-testid="stSidebarContent"],
+[data-testid="stSidebarUserContent"] {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+/* push the buddy iframe all the way to the bottom of the sidebar */
 [data-testid="stSidebar"] iframe {
-    margin-top: 65px;
+    margin-top: auto;
+    margin-bottom: 24px;
 }
