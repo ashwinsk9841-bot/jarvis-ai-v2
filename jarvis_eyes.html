@@ -29,7 +29,7 @@
 
     .ring {
         position: absolute;
-        inset: 0;
+        top: 0; left: 0; right: 0; bottom: 0;
         border-radius: 50%;
         border: 2px solid rgba(0, 229, 255, 0.35);
         border-top-color: #00e5ff;
@@ -37,52 +37,31 @@
     }
 
     .ring.reverse {
-        inset: 8px;
+        top: 8px; left: 8px; right: 8px; bottom: 8px;
         border-color: rgba(0, 229, 255, 0.2);
         border-bottom-color: #00e5ff;
         animation: spin 2.1s linear infinite reverse;
     }
 
-    /* eyelid clips the pupil so it looks like it blinks inside the socket */
-    .lid {
-        position: absolute;
-        inset: 22px;
-        border-radius: 50%;
-        overflow: hidden;
-        transform-origin: center;
-        transition: transform 0.09s ease-in;
-        z-index: 1;
-        background: rgba(0,0,0,0.001); /* forces its own render layer */
-    }
-
-    .lid.blink {
-        transform: scaleY(0.05);
-    }
-
-    /* glowing pupil/core — this is the part that follows the cursor */
+    /* pupil — plain visible circle, no nested clipping wrapper */
     .core {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        top: 22px;
+        left: 22px;
+        width: 26px;
+        height: 26px;
         border-radius: 50%;
-        background: radial-gradient(circle at 35% 35%, #ffffff, #00e5ff 45%, #0a3f4d 100%);
+        background-color: #00e5ff;
+        background-image: radial-gradient(circle at 35% 35%, #ffffff, #00e5ff 45%, #0a5a6b 100%);
         box-shadow:
-            0 0 12px rgba(0, 229, 255, 0.9),
-            0 0 28px rgba(0, 229, 255, 0.5);
-        animation: pulse 2.4s ease-in-out infinite;
-        will-change: transform;
-        z-index: 2;
+            0 0 10px 2px rgba(0, 229, 255, 0.9),
+            0 0 24px 4px rgba(0, 229, 255, 0.5);
+        transition: transform 0.05s linear;
+        transform-origin: center;
     }
 
     @keyframes spin {
         to { transform: rotate(360deg); }
-    }
-
-    @keyframes pulse {
-        0%, 100% { filter: brightness(1);   }
-        50%      { filter: brightness(0.82); }
     }
 
     .label {
@@ -104,27 +83,24 @@
         <div class="eye" id="eyeL">
             <div class="ring"></div>
             <div class="ring reverse"></div>
-            <div class="lid" id="lidL"><div class="core" id="coreL"></div></div>
+            <div class="core" id="coreL"></div>
             <div class="label">L-OPT</div>
         </div>
         <div class="eye" id="eyeR">
             <div class="ring"></div>
             <div class="ring reverse"></div>
-            <div class="lid" id="lidR"><div class="core" id="coreR"></div></div>
+            <div class="core" id="coreR"></div>
             <div class="label">R-OPT</div>
         </div>
     </div>
 
 <script>
-    // ---- pupil tracking ----
-    // We listen on window.parent (the real page) so the eyes follow the
-    // cursor across the WHOLE app, not just inside this small iframe.
     const eyes = [
         { eye: document.getElementById("eyeL"), core: document.getElementById("coreL") },
         { eye: document.getElementById("eyeR"), core: document.getElementById("coreR") }
     ];
 
-    const MAX_OFFSET = 9; // how far the pupil can drift from center, in px
+    const MAX_OFFSET = 9;
 
     function updateEyes(clientX, clientY) {
         eyes.forEach(({ eye, core }) => {
@@ -132,44 +108,51 @@
             const cx = rect.left + rect.width / 2;
             const cy = rect.top + rect.height / 2;
 
-            let dx = clientX - cx;
-            let dy = clientY - cy;
+            const dx = clientX - cx;
+            const dy = clientY - cy;
             const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-            const clamped = Math.min(dist, 400); // don't over-rotate for far cursor
+            const clamped = Math.min(dist, 400);
             const scale = (clamped / dist) * (MAX_OFFSET / 60);
 
-            const offsetX = dx * scale;
-            const offsetY = dy * scale;
-
-            core.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+            core.style.transform = `translate(${(dx * scale).toFixed(1)}px, ${(dy * scale).toFixed(1)}px) scaleY(1)`;
+            core.dataset.tx = (dx * scale).toFixed(1);
+            core.dataset.ty = (dy * scale).toFixed(1);
         });
+    }
+
+    function attachTracking(doc) {
+        doc.addEventListener("mousemove", (e) => updateEyes(e.clientX, e.clientY));
     }
 
     try {
-        // Track mouse across the whole parent Streamlit page (same-origin iframe)
-        window.parent.document.addEventListener("mousemove", (e) => {
-            updateEyes(e.clientX, e.clientY);
-        });
+        attachTracking(window.parent.document);
     } catch (err) {
-        // Fallback: track only within this iframe if parent access is blocked
-        document.addEventListener("mousemove", (e) => {
-            updateEyes(e.clientX, e.clientY);
-        });
+        attachTracking(document);
     }
+    // always also track inside the iframe itself as a safety net
+    attachTracking(document);
 
-    // ---- blinking ----
-    const lids = [document.getElementById("lidL"), document.getElementById("lidR")];
+    // ---- blinking (scale the core vertically, keep its current x/y offset) ----
+    const cores = [document.getElementById("coreL"), document.getElementById("coreR")];
 
     function blink() {
-        lids.forEach(l => l.classList.add("blink"));
-        setTimeout(() => lids.forEach(l => l.classList.remove("blink")), 120);
+        cores.forEach(c => {
+            const tx = c.dataset.tx || 0;
+            const ty = c.dataset.ty || 0;
+            c.style.transform = `translate(${tx}px, ${ty}px) scaleY(0.08)`;
+        });
+        setTimeout(() => {
+            cores.forEach(c => {
+                const tx = c.dataset.tx || 0;
+                const ty = c.dataset.ty || 0;
+                c.style.transform = `translate(${tx}px, ${ty}px) scaleY(1)`;
+            });
+        }, 120);
 
-        // schedule next blink at a random natural interval (2.5s - 6s)
-        const next = 2500 + Math.random() * 3500;
-        setTimeout(blink, next);
+        setTimeout(blink, 2500 + Math.random() * 3500);
     }
 
-    setTimeout(blink, 1800); // first blink shortly after load
+    setTimeout(blink, 1800);
 </script>
 
 </body>
