@@ -27,7 +27,6 @@
         height: 70px;
     }
 
-    /* outer rotating ring */
     .ring {
         position: absolute;
         inset: 0;
@@ -44,16 +43,32 @@
         animation: spin 2.1s linear infinite reverse;
     }
 
-    /* glowing core */
-    .core {
+    /* eyelid clips the pupil so it looks like it blinks inside the socket */
+    .lid {
         position: absolute;
         inset: 22px;
+        border-radius: 50%;
+        overflow: hidden;
+        transform-origin: center;
+        transition: transform 0.09s ease-in;
+    }
+
+    .lid.blink {
+        transform: scaleY(0.05);
+    }
+
+    /* glowing pupil/core — this is the part that follows the cursor */
+    .core {
+        position: absolute;
+        width: 100%;
+        height: 100%;
         border-radius: 50%;
         background: radial-gradient(circle at 35% 35%, #7fffff, #00e5ff 55%, #0a3f4d 100%);
         box-shadow:
             0 0 12px rgba(0, 229, 255, 0.9),
             0 0 28px rgba(0, 229, 255, 0.5);
         animation: pulse 2.4s ease-in-out infinite;
+        will-change: transform;
     }
 
     @keyframes spin {
@@ -61,8 +76,8 @@
     }
 
     @keyframes pulse {
-        0%, 100% { transform: scale(1);   opacity: 1;   }
-        50%      { transform: scale(0.82); opacity: 0.75; }
+        0%, 100% { filter: brightness(1);   }
+        50%      { filter: brightness(0.82); }
     }
 
     .label {
@@ -81,19 +96,76 @@
 <body>
 
     <div class="eye-wrap">
-        <div class="eye">
+        <div class="eye" id="eyeL">
             <div class="ring"></div>
             <div class="ring reverse"></div>
-            <div class="core"></div>
+            <div class="lid" id="lidL"><div class="core" id="coreL"></div></div>
             <div class="label">L-OPT</div>
         </div>
-        <div class="eye">
+        <div class="eye" id="eyeR">
             <div class="ring"></div>
             <div class="ring reverse"></div>
-            <div class="core"></div>
+            <div class="lid" id="lidR"><div class="core" id="coreR"></div></div>
             <div class="label">R-OPT</div>
         </div>
     </div>
+
+<script>
+    // ---- pupil tracking ----
+    // We listen on window.parent (the real page) so the eyes follow the
+    // cursor across the WHOLE app, not just inside this small iframe.
+    const eyes = [
+        { eye: document.getElementById("eyeL"), core: document.getElementById("coreL") },
+        { eye: document.getElementById("eyeR"), core: document.getElementById("coreR") }
+    ];
+
+    const MAX_OFFSET = 9; // how far the pupil can drift from center, in px
+
+    function updateEyes(clientX, clientY) {
+        eyes.forEach(({ eye, core }) => {
+            const rect = eye.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+
+            let dx = clientX - cx;
+            let dy = clientY - cy;
+            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+            const clamped = Math.min(dist, 400); // don't over-rotate for far cursor
+            const scale = (clamped / dist) * (MAX_OFFSET / 60);
+
+            const offsetX = dx * scale;
+            const offsetY = dy * scale;
+
+            core.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+        });
+    }
+
+    try {
+        // Track mouse across the whole parent Streamlit page (same-origin iframe)
+        window.parent.document.addEventListener("mousemove", (e) => {
+            updateEyes(e.clientX, e.clientY);
+        });
+    } catch (err) {
+        // Fallback: track only within this iframe if parent access is blocked
+        document.addEventListener("mousemove", (e) => {
+            updateEyes(e.clientX, e.clientY);
+        });
+    }
+
+    // ---- blinking ----
+    const lids = [document.getElementById("lidL"), document.getElementById("lidR")];
+
+    function blink() {
+        lids.forEach(l => l.classList.add("blink"));
+        setTimeout(() => lids.forEach(l => l.classList.remove("blink")), 120);
+
+        // schedule next blink at a random natural interval (2.5s - 6s)
+        const next = 2500 + Math.random() * 3500;
+        setTimeout(blink, next);
+    }
+
+    setTimeout(blink, 1800); // first blink shortly after load
+</script>
 
 </body>
 </html>
