@@ -26,16 +26,17 @@
     font-family: var(--sans);
 }
 
-/* faint HUD grid behind everything */
+/* faint fallback grid — kept very subtle, canvas animation (script.js)
+   handles the main animated background now */
 .stApp::before {
     content: "";
     position: fixed;
     inset: 0;
     pointer-events: none;
-    z-index: 0;
+    z-index: -3;
     background-image:
-        linear-gradient(rgba(0,229,255,0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,229,255,0.035) 1px, transparent 1px);
+        linear-gradient(rgba(0,229,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,0.02) 1px, transparent 1px);
     background-size: 42px 42px;
 }
 
@@ -153,7 +154,52 @@ h1 {
     border-radius: 4px;
 }
 
-/* ---------- hide default streamlit chrome ---------- */
+/* ---------- sidebar decorative scan animation (fills empty space) ---------- */
+
+[data-testid="stSidebar"] [data-testid="stFileUploader"] {
+    position: relative;
+    padding-bottom: 90px; /* room for the radar graphic below the upload box */
+}
+
+[data-testid="stSidebar"] [data-testid="stFileUploader"]::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 6px;
+    width: 64px;
+    height: 64px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    border: 1px solid rgba(0, 229, 255, 0.25);
+    background:
+        radial-gradient(circle, rgba(0,229,255,0.06) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+[data-testid="stSidebar"] [data-testid="stFileUploader"]::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 6px;
+    width: 64px;
+    height: 64px;
+    transform-origin: center;
+    transform: translateX(-50%) rotate(0deg);
+    border-radius: 50%;
+    background: conic-gradient(
+        rgba(0, 229, 255, 0.55) 0deg,
+        transparent 45deg,
+        transparent 360deg
+    );
+    -webkit-mask: radial-gradient(circle, transparent 55%, black 56%);
+            mask: radial-gradient(circle, transparent 55%, black 56%);
+    animation: radarSweep 2.6s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes radarSweep {
+    to { transform: translateX(-50%) rotate(360deg); }
+}
 
 #MainMenu, footer, header,
 .stDeployButton,
