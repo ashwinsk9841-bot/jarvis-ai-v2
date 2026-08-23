@@ -155,7 +155,7 @@ uploaded_file = st.sidebar.file_uploader(
     "Drop your CSV file here:",
     type=["csv"]
 )
-with st.sidebar:
+
     with open("jarvis_buddy.html", "r", encoding="utf-8") as f:
         components.html(f.read(), height=120)
 
