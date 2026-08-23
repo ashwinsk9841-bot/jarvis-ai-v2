@@ -270,3 +270,8 @@ button[kind="header"],
 [data-testid="stSidebarCollapseButton"] {
     display: none !important;
 }
+
+/* push the buddy iframe down away from Streamlit's own sidebar spinner */
+[data-testid="stSidebar"] iframe {
+    margin-top: 30px;
+}
