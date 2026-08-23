@@ -106,6 +106,9 @@ st.title("🤖 Jarvis Data Analyst")
 st.caption("JARVIS AI-POWERED CSV READER & ANALYST")
 st.caption("⚡ Built by Ashwin")
 
+with open("jarvis_buddy.html", "r", encoding="utf-8") as f:
+    components.html(f.read(), height=160)
+
 
 # =========================================================
 # 5. CUSTOM CSS
@@ -156,8 +159,6 @@ uploaded_file = st.sidebar.file_uploader(
     type=["csv"]
 )
 
-    with open("jarvis_buddy.html", "r", encoding="utf-8") as f:
-        components.html(f.read(), height=120)
 
 # =========================================================
 # 8. PROCESS DATASET
