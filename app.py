@@ -102,9 +102,9 @@ except Exception:
 # 4. MAIN TITLE
 # =========================================================
 
-st.title("🤖 JARVIS AI")
-st.caption("Self-Healing Agentic Data Analyst")
-st.caption("⚡ Built by Byte Force")
+st.title("🤖 ")
+st.caption("JARVIS AI-POWERED CSV READER & ANALYST")
+st.caption("⚡ Built by Ashwin")
 
 
 # =========================================================
@@ -149,13 +149,15 @@ if "dataset_name" not in st.session_state:
 # 7. SIDEBAR - CSV UPLOAD
 # =========================================================
 
-st.sidebar.header("📂 Upload Dataset")
+st.sidebar.header("📂 Upload Your Dataset")
 
 uploaded_file = st.sidebar.file_uploader(
-    "Upload your Datathon CSV file here:",
+    "Drop your CSV file here:",
     type=["csv"]
 )
 
+with open("jarvis_buddy.html", "r", encoding="utf-8") as f:
+    components.html(f.read(), height=110)
 
 # =========================================================
 # 8. PROCESS DATASET
