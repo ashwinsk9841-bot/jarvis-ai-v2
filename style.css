@@ -271,16 +271,14 @@ button[kind="header"],
     display: none !important;
 }
 
-/* make sidebar a flex column so we can pin the buddy to its bottom */
+/* let the sidebar extend and scroll on its own if content is tall */
 [data-testid="stSidebarContent"],
 [data-testid="stSidebarUserContent"] {
-    display: flex;
-    flex-direction: column;
-    min-height: 100%;
+    min-height: 100vh;
+    overflow-y: auto;
 }
 
-/* push the buddy iframe all the way to the bottom of the sidebar */
+/* simple fixed gap between the native spinner and the buddy iframe */
 [data-testid="stSidebar"] iframe {
-    margin-top: auto;
-    margin-bottom: 24px;
+    margin-top: 40px;
 }
