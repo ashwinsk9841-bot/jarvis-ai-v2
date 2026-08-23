@@ -54,7 +54,7 @@
         inset: "0",
         width: "100vw",
         height: "100vh",
-        zIndex: "-2",
+        zIndex: "-1",
         pointerEvents: "none"
     });
     parentDoc.body.appendChild(canvas);
