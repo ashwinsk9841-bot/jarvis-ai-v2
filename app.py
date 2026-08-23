@@ -111,71 +111,24 @@ st.caption("⚡ Built by Byte Force")
 # 5. CUSTOM CSS
 # =========================================================
 
-st.markdown(
-    """
-    <style>
+# =========================================================
+# 5. CUSTOM CSS + JS  (frontend only — backend untouched)
+# =========================================================
 
-    .stApp {
-        background-color: #0e1117;
-        color: #e0e0e0;
-    }
+try:
+    with open("style.css", "r", encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+except Exception:
+    pass
 
-    [data-testid="stSidebar"] {
-        background-color: #1a1c23;
-        border-right: 1px solid #30363d;
-    }
+# small cyan scan-line under the title (pure decoration)
+st.markdown('<div class="jarvis-scanline"></div>', unsafe_allow_html=True)
 
-    .stChatInput {
-        border-radius: 20px;
-        border: 1px solid #00d2ff !important;
-    }
-
-    h1 {
-        color: #00d2ff;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        text-shadow: 0px 0px 10px rgba(0, 210, 255, 0.3);
-    }
-
-    #MainMenu {
-        visibility: hidden;
-    }
-
-    footer {
-        visibility: hidden;
-    }
-
-    header {
-        visibility: hidden;
-    }
-
-    .stDeployButton {
-        display: none;
-    }
-
-    [data-testid="stToolbar"] {
-        display: none;
-    }
-
-    [data-testid="stDecoration"] {
-        display: none;
-    }
-
-    [data-testid="stStatusWidget"] {
-        display: none;
-    }
-
-    button[kind="header"] {
-        display: none !important;
-    }
-
-    [data-testid="stSidebarCollapseButton"] {
-        display: none !important;
-    }
-
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+try:
+    with open("script.js", "r", encoding="utf-8") as f:
+        components.html(f"<script>{f.read()}</script>", height=0, width=0)
+except Exception:
+    pass
 
 
 # =========================================================
