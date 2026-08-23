@@ -19,26 +19,17 @@
 
 /* ---------- base ---------- */
 
+html, body {
+    background: var(--void) !important;
+}
+
 .stApp {
-    background:
-        radial-gradient(ellipse at top, #0a1420 0%, var(--void) 60%);
+    background: transparent !important;
     color: var(--text);
     font-family: var(--sans);
 }
 
-/* faint fallback grid — kept very subtle, canvas animation (script.js)
-   handles the main animated background now */
-.stApp::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: -3;
-    background-image:
-        linear-gradient(rgba(0,229,255,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,229,255,0.02) 1px, transparent 1px);
-    background-size: 42px 42px;
-}
+/* background handled entirely by the rain canvas injected via script.js */
 
 /* ---------- sidebar ---------- */
 
