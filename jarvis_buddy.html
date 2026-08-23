@@ -14,11 +14,12 @@
     }
 
     .buddy-wrap {
-        width: 100px;
-        height: 100px;
+        width: 100%;
+        height: 200px;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
+        padding-top: 10px;
         cursor: pointer;
         user-select: none;
     }
@@ -27,7 +28,7 @@
         position: relative;
         width: 80px;
         height: 80px;
-        border-radius: 50%;
+        border-radius: 18px;
         background: radial-gradient(circle at 35% 30%, #1a2a33, #0a1218 70%);
         border: 2px solid rgba(0, 229, 255, 0.5);
         box-shadow:
@@ -55,6 +56,26 @@
     .eye.left  { left: 22px; }
     .eye.right { right: 22px; }
 
+    /* smiling mouth (idle) — arc made from a bottom-border curve */
+    .mouth {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        width: 22px;
+        height: 11px;
+        margin-left: -11px;
+        border: 2px solid transparent;
+        border-bottom-color: #00e5ff;
+        border-radius: 50%;
+        transition: transform 0.15s ease, border-bottom-color 0.15s ease;
+    }
+
+    /* sad mouth — flipped arc, shown only while hit */
+    .buddy.hit .mouth {
+        transform: scaleY(-1) translateY(2px);
+        border-bottom-color: #ff4d5e;
+    }
+
     /* --- hit reaction --- */
     .buddy.hit {
         animation: none;
@@ -80,7 +101,7 @@
         width: 20px;
         height: 20px;
         margin: -10px 0 0 -10px;
-        border-radius: 50%;
+        border-radius: 6px;
         border: 2px solid rgba(255, 77, 94, 0.8);
         opacity: 0;
         pointer-events: none;
@@ -102,6 +123,7 @@
         <div class="buddy" id="buddy">
             <div class="eye left"></div>
             <div class="eye right"></div>
+            <div class="mouth" id="mouth"></div>
             <div class="impact" id="impact"></div>
         </div>
     </div>
@@ -110,9 +132,49 @@
     const buddy = document.getElementById("buddy");
     const wrap = document.getElementById("buddyWrap");
     const impact = document.getElementById("impact");
+    const eyeL = document.querySelector(".eye.left");
+    const eyeR = document.querySelector(".eye.right");
     let resetTimer = null;
+    let isHit = false;
+
+    const LEAN_MAX = 45;  // px the whole buddy can shift toward the cursor
+    const EYE_MAX = 3;    // px the pupils can shift within the face
+
+    function trackCursor(clientX, clientY) {
+        if (isHit) return; // don't fight the hit animation
+
+        const rect = buddy.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+
+        const dx = clientX - cx;
+        const dy = clientY - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+        const leanX = (dx / dist) * Math.min(dist, LEAN_MAX);
+        const leanY = (dy / dist) * Math.min(dist, LEAN_MAX);
+        buddy.style.transform = `translate(${leanX.toFixed(1)}px, ${leanY.toFixed(1)}px)`;
+
+        const eyeX = (dx / dist) * Math.min(dist, EYE_MAX);
+        const eyeY = (dy / dist) * Math.min(dist, EYE_MAX);
+        [eyeL, eyeR].forEach(eye => {
+            eye.style.transform = `translate(${eyeX.toFixed(1)}px, ${eyeY.toFixed(1)}px)`;
+        });
+    }
+
+    function attachTracking(doc) {
+        doc.addEventListener("mousemove", (e) => trackCursor(e.clientX, e.clientY));
+    }
+
+    try {
+        attachTracking(window.parent.document);
+    } catch (err) {
+        attachTracking(document);
+    }
+    attachTracking(document); // safety net inside the iframe too
 
     function playHit(fromLeft) {
+        isHit = true;
         buddy.style.setProperty("--tilt", fromLeft ? "-8deg" : "8deg");
         buddy.classList.add("hit");
         impact.classList.remove("play");
@@ -122,6 +184,7 @@
         clearTimeout(resetTimer);
         resetTimer = setTimeout(() => {
             buddy.classList.remove("hit");
+            isHit = false;
         }, 220);
     }
 
