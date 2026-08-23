@@ -44,7 +44,7 @@
     });
     parentDoc.body.appendChild(badge);
 
-    // ---- animated network background (particles + connecting lines) ----
+    // ---- animated rain background (cyan theme, cursor-driven wind + right-click lightning) ----
     if (parentDoc.getElementById("jarvis-bg-canvas")) return;
 
     const canvas = parentDoc.createElement("canvas");
@@ -60,67 +60,117 @@
     parentDoc.body.appendChild(canvas);
 
     const ctx = canvas.getContext("2d");
-    let W, H, particles;
+    let W, H, drops;
+    let mouseX = null; // used to steer wind direction
+    let flash = 0;      // current lightning flash brightness (0-1)
+    let bolts = [];      // active lightning bolt paths
 
     function resize() {
         W = canvas.width = window.parent.innerWidth;
         H = canvas.height = window.parent.innerHeight;
     }
 
-    function initParticles() {
-        const count = Math.floor((W * H) / 22000); // density scales with screen size
-        particles = Array.from({ length: count }, () => ({
+    function initDrops() {
+        const count = Math.floor((W * H) / 9000);
+        drops = Array.from({ length: count }, () => ({
             x: Math.random() * W,
             y: Math.random() * H,
-            vx: (Math.random() - 0.5) * 0.25,
-            vy: (Math.random() - 0.5) * 0.25,
-            r: Math.random() * 1.4 + 0.6
+            len: Math.random() * 14 + 8,
+            speed: Math.random() * 4 + 6,
+            opacity: Math.random() * 0.35 + 0.15
         }));
+    }
+
+    function currentWind() {
+        // wind tilt based on cursor horizontal position relative to screen center
+        if (mouseX === null) return 0;
+        const norm = (mouseX - W / 2) / (W / 2); // -1 .. 1
+        return norm * 3.5; // px of horizontal drift per frame at the extremes
+    }
+
+    function drawLightningBolt(x, y) {
+        // generate a jagged path from top of screen down to (x, y)
+        const points = [{ x, y: 0 }];
+        let cx = x;
+        let steps = 8;
+        for (let i = 1; i <= steps; i++) {
+            cx += (Math.random() - 0.5) * 60;
+            const cy = (y / steps) * i;
+            points.push({ x: cx, y: cy });
+        }
+        bolts.push({ points, life: 1 });
+        flash = 1;
     }
 
     function step() {
         ctx.clearRect(0, 0, W, H);
 
-        // move + draw particles
-        particles.forEach(p => {
-            p.x += p.vx;
-            p.y += p.vy;
-            if (p.x < 0 || p.x > W) p.vx *= -1;
-            if (p.y < 0 || p.y > H) p.vy *= -1;
+        const wind = currentWind();
 
+        // rain drops
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.5)";
+        ctx.lineWidth = 1;
+        drops.forEach(d => {
+            ctx.globalAlpha = d.opacity;
             ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(0, 229, 255, 0.55)";
-            ctx.fill();
-        });
+            ctx.moveTo(d.x, d.y);
+            ctx.lineTo(d.x + wind * 0.6, d.y + d.len);
+            ctx.stroke();
 
-        // connect nearby particles with faint lines
-        const maxDist = 130;
-        for (let i = 0; i < particles.length; i++) {
-            for (let j = i + 1; j < particles.length; j++) {
-                const a = particles[i], b = particles[j];
-                const dx = a.x - b.x, dy = a.y - b.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < maxDist) {
-                    ctx.beginPath();
-                    ctx.moveTo(a.x, a.y);
-                    ctx.lineTo(b.x, b.y);
-                    ctx.strokeStyle = `rgba(0, 229, 255, ${0.12 * (1 - dist / maxDist)})`;
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                }
+            d.y += d.speed;
+            d.x += wind * 0.15;
+
+            if (d.y > H) {
+                d.y = -d.len;
+                d.x = Math.random() * W;
             }
+            if (d.x < -20) d.x = W + 20;
+            if (d.x > W + 20) d.x = -20;
+        });
+        ctx.globalAlpha = 1;
+
+        // lightning flash overlay
+        if (flash > 0) {
+            ctx.fillStyle = `rgba(180, 240, 255, ${flash * 0.35})`;
+            ctx.fillRect(0, 0, W, H);
+            flash -= 0.06;
+            if (flash < 0) flash = 0;
         }
+
+        // lightning bolt paths
+        bolts.forEach(b => {
+            ctx.beginPath();
+            ctx.moveTo(b.points[0].x, b.points[0].y);
+            b.points.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
+            ctx.strokeStyle = `rgba(150, 235, 255, ${b.life})`;
+            ctx.lineWidth = 2;
+            ctx.shadowColor = "rgba(0, 229, 255, 0.9)";
+            ctx.shadowBlur = 12;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            b.life -= 0.05;
+        });
+        bolts = bolts.filter(b => b.life > 0);
 
         requestAnimationFrame(step);
     }
 
     resize();
-    initParticles();
+    initDrops();
     step();
 
     window.parent.addEventListener("resize", () => {
         resize();
-        initParticles();
+        initDrops();
+    });
+
+    window.parent.document.addEventListener("mousemove", (e) => {
+        mouseX = e.clientX;
+    });
+
+    // right-click anywhere on the app triggers a lightning strike at that x position
+    window.parent.document.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        drawLightningBolt(e.clientX, e.clientY);
     });
 })();
