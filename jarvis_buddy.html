@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+    .buddy-wrap {
+        width: 100px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .buddy {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #1a2a33, #0a1218 70%);
+        border: 2px solid rgba(0, 229, 255, 0.5);
+        box-shadow:
+            0 0 14px rgba(0, 229, 255, 0.35),
+            inset 0 0 12px rgba(0, 229, 255, 0.15);
+        animation: idleBob 2.6s ease-in-out infinite;
+        transition: transform 0.05s ease-out, box-shadow 0.15s ease-out, border-color 0.15s ease-out;
+    }
+
+    @keyframes idleBob {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50%      { transform: translateY(-4px) scale(1.015); }
+    }
+
+    .eye {
+        position: absolute;
+        top: 30px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #00e5ff;
+        box-shadow: 0 0 6px rgba(0, 229, 255, 0.9);
+        transition: transform 0.08s ease, height 0.08s ease;
+    }
+    .eye.left  { left: 22px; }
+    .eye.right { right: 22px; }
+
+    /* --- hit reaction --- */
+    .buddy.hit {
+        animation: none;
+        transform: scale(0.82, 1.12) rotate(var(--tilt, -6deg));
+        border-color: #ff4d5e;
+        box-shadow:
+            0 0 22px rgba(255, 77, 94, 0.6),
+            inset 0 0 14px rgba(255, 77, 94, 0.25);
+    }
+
+    .buddy.hit .eye {
+        height: 2px;
+        transform: translateY(3px);
+        background: #ff4d5e;
+        box-shadow: 0 0 6px rgba(255, 77, 94, 0.9);
+    }
+
+    /* small "impact" ring that pops out on click */
+    .impact {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        margin: -10px 0 0 -10px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 77, 94, 0.8);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .impact.play {
+        animation: impactPop 0.35s ease-out forwards;
+    }
+
+    @keyframes impactPop {
+        0%   { opacity: 0.9; transform: scale(0.3); }
+        100% { opacity: 0;   transform: scale(2.6); }
+    }
+</style>
+</head>
+<body>
+
+    <div class="buddy-wrap" id="buddyWrap">
+        <div class="buddy" id="buddy">
+            <div class="eye left"></div>
+            <div class="eye right"></div>
+            <div class="impact" id="impact"></div>
+        </div>
+    </div>
+
+<script>
+    const buddy = document.getElementById("buddy");
+    const wrap = document.getElementById("buddyWrap");
+    const impact = document.getElementById("impact");
+    let resetTimer = null;
+
+    function playHit(fromLeft) {
+        buddy.style.setProperty("--tilt", fromLeft ? "-8deg" : "8deg");
+        buddy.classList.add("hit");
+        impact.classList.remove("play");
+        void impact.offsetWidth; // restart animation
+        impact.classList.add("play");
+
+        clearTimeout(resetTimer);
+        resetTimer = setTimeout(() => {
+            buddy.classList.remove("hit");
+        }, 220);
+    }
+
+    // left click
+    wrap.addEventListener("click", (e) => {
+        const rect = wrap.getBoundingClientRect();
+        const fromLeft = (e.clientX - rect.left) < rect.width / 2;
+        playHit(fromLeft);
+    });
+
+    // right click — same reaction, no context menu
+    wrap.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        const rect = wrap.getBoundingClientRect();
+        const fromLeft = (e.clientX - rect.left) < rect.width / 2;
+        playHit(!fromLeft);
+    });
+</script>
+
+</body>
+</html>
