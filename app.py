@@ -107,7 +107,7 @@ st.caption("JARVIS AI-POWERED CSV READER & ANALYST")
 st.caption("⚡ Built by Ashwin")
 
 with open("jarvis_buddy.html", "r", encoding="utf-8") as f:
-    components.html(f.read(), height=191)
+    components.html(f.read(), height=181)
 
 
 # =========================================================
