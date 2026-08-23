@@ -156,9 +156,13 @@ uploaded_file = st.sidebar.file_uploader(
     type=["csv"]
 )
 
+
+
+
+
 with st.sidebar:
     with open("jarvis_buddy.html", "r", encoding="utf-8") as f:
-        components.html(f.read(), height=170)
+        components.html(f.read(), height=95)
 
 # =========================================================
 # 8. PROCESS DATASET
