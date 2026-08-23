@@ -111,12 +111,15 @@
             const dx = clientX - cx;
             const dy = clientY - cy;
             const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-            const clamped = Math.min(dist, 400);
-            const scale = (clamped / dist) * (MAX_OFFSET / 60);
 
-            core.style.transform = `translate(${(dx * scale).toFixed(1)}px, ${(dy * scale).toFixed(1)}px) scaleY(1)`;
-            core.dataset.tx = (dx * scale).toFixed(1);
-            core.dataset.ty = (dy * scale).toFixed(1);
+            // unit direction vector, scaled to at most MAX_OFFSET px
+            const travel = Math.min(dist, MAX_OFFSET);
+            const offsetX = (dx / dist) * travel;
+            const offsetY = (dy / dist) * travel;
+
+            core.style.transform = `translate(${offsetX.toFixed(1)}px, ${offsetY.toFixed(1)}px) scaleY(1)`;
+            core.dataset.tx = offsetX.toFixed(1);
+            core.dataset.ty = offsetY.toFixed(1);
         });
     }
 
