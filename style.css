@@ -154,7 +154,76 @@ h1 {
     border-radius: 4px;
 }
 
-/* ---------- sidebar decorative scan animation (fills empty space) ---------- */
+/* ---------- file uploader dropzone — HUD style ---------- */
+
+[data-testid="stFileUploaderDropzone"] {
+    background: linear-gradient(180deg, #0b131a 0%, #070d12 100%) !important;
+    border: 1.5px dashed rgba(0, 229, 255, 0.4) !important;
+    border-radius: 10px !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-testid="stFileUploaderDropzone"]:hover {
+    border-color: var(--cyan) !important;
+    box-shadow: 0 0 16px rgba(0, 229, 255, 0.18);
+}
+
+[data-testid="stFileUploaderDropzone"] button {
+    background: rgba(0, 229, 255, 0.08) !important;
+    border: 1px solid var(--cyan-dim) !important;
+    color: var(--cyan) !important;
+    border-radius: 6px !important;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-testid="stFileUploaderDropzone"] button:hover {
+    background: rgba(0, 229, 255, 0.18) !important;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
+}
+
+[data-testid="stFileUploaderDropzone"] svg {
+    color: var(--cyan) !important;
+    fill: var(--cyan) !important;
+}
+
+/* uploaded-file chip */
+[data-testid="stFileUploaderFile"] {
+    background: var(--panel) !important;
+    border: 1px solid var(--cyan-dim) !important;
+    border-radius: 8px !important;
+}
+
+/* ---------- chat input — replace default red focus with cyan HUD glow ---------- */
+
+[data-testid="stChatInput"],
+[data-testid="stChatInput"] > div,
+.stChatInput {
+    border: 1px solid var(--cyan-dim) !important;
+    border-radius: 24px !important;
+    background: var(--panel) !important;
+    box-shadow: 0 0 14px rgba(0, 229, 255, 0.15) !important;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+[data-testid="stChatInput"]:focus-within,
+.stChatInput:focus-within {
+    border-color: var(--cyan) !important;
+    box-shadow: 0 0 22px rgba(0, 229, 255, 0.35) !important;
+}
+
+[data-testid="stChatInput"] textarea {
+    color: var(--text) !important;
+    caret-color: var(--cyan) !important;
+}
+
+[data-testid="stChatInputSubmitButton"] {
+    background: var(--cyan) !important;
+    border-radius: 50% !important;
+}
+
+[data-testid="stChatInputSubmitButton"] svg {
+    fill: #05070a !important;
+}
 
 [data-testid="stSidebar"] [data-testid="stFileUploader"] {
     position: relative;
